@@ -10,12 +10,12 @@
     "astro": "astro"
   },
   "dependencies": {
-    "dayjs": "^1.11.13"
+    "dayjs": "^1.11.19"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.4",
-    "@astrojs/vercel": "^8.1.4",
-    "astro": "^5.8.0",
-    "typescript": "^5.8.3"
+    "@astrojs/check": "^0.9.5",
+    "@astrojs/vercel": "^9.0.1",
+    "astro": "^5.15.0",
+    "typescript": "^5.9.3"
   }
 }
