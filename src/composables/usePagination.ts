@@ -1,35 +1,41 @@
+import type { MaybeRefOrGetter } from 'vue'
+import { computed, toValue } from 'vue'
+
 export function usePagination(options: {
-  total: number
-  currentPage: number
+  total: MaybeRefOrGetter<number>
+  currentPage: MaybeRefOrGetter<number>
   url: string
-  perPage?: number
-  visiblePages?: number
+  perPage?: MaybeRefOrGetter<number | undefined>
+  visiblePages?: MaybeRefOrGetter<number | undefined>
 }) {
-  const {
-    total,
-    currentPage,
-    perPage = 12,
-  } = options
+  const total = computed(() => toValue(options.total))
+  const currentPage = computed(() => toValue(options.currentPage))
+  const perPage = computed(() => toValue(options.perPage) || 12)
 
-  const items = []
-  const totalPages = Math.ceil(total / perPage)
-  const visiblePages = Math.min(options.visiblePages || 5, totalPages)
-  const sideCount = Math.floor(visiblePages / 2)
+  const totalPages = computed(() => Math.ceil(total.value / perPage.value))
+  const visiblePages = computed(() => Math.min(toValue(options.visiblePages) || 5, totalPages.value))
+  const sideCount = computed(() => Math.floor(visiblePages.value / 2))
 
-  let start = Math.max(1, currentPage - sideCount)
-  let end = Math.min(totalPages, currentPage + sideCount)
+  const items = computed(() => {
+    const items: number[] = []
 
-  if (end - start + 1 < visiblePages && currentPage > 0) {
-    if (currentPage <= sideCount) {
-      end = Math.min(totalPages, start + visiblePages - 1)
-    } else if (currentPage > totalPages - sideCount) {
-      start = Math.max(1, end - visiblePages + 1)
+    let start = Math.max(1, currentPage.value - sideCount.value)
+    let end = Math.min(totalPages.value, currentPage.value + sideCount.value)
+
+    if (end - start + 1 < visiblePages.value && currentPage.value > 0) {
+      if (currentPage.value <= sideCount.value) {
+        end = Math.min(totalPages.value, start + visiblePages.value - 1)
+      } else if (currentPage.value > totalPages.value - sideCount.value) {
+        start = Math.max(1, end - visiblePages.value + 1)
+      }
     }
-  }
 
-  for (let i = start; i <= end; i++) {
-    items.push(i)
-  }
+    for (let i = start; i <= end; i++) {
+      items.push(i)
+    }
+
+    return items
+  })
 
   function getUrl(page: number) {
     const url = new URL(options.url)
@@ -39,16 +45,15 @@ export function usePagination(options: {
 
   return {
     items,
-    showPagination: total > perPage,
-    currentPage,
-    canFirst: currentPage > 1,
-    canPrev: currentPage > 1,
-    canNext: currentPage < totalPages,
-    canLast: currentPage < totalPages,
-    firstUrl: getUrl(1),
-    prevUrl: getUrl(currentPage - 1),
-    nextUrl: getUrl(currentPage + 1),
-    lastUrl: getUrl(totalPages),
+    showPagination: computed(() => total.value > perPage.value),
+    canFirst: computed(() => currentPage.value > 1),
+    canPrev: computed(() => currentPage.value > 1),
+    canNext: computed(() => currentPage.value < totalPages.value),
+    canLast: computed(() => currentPage.value < totalPages.value),
+    firstUrl: computed(() => getUrl(1)),
+    prevUrl: computed(() => getUrl(currentPage.value - 1)),
+    nextUrl: computed(() => getUrl(currentPage.value + 1)),
+    lastUrl: computed(() => getUrl(totalPages.value)),
     getUrl,
   }
 }
